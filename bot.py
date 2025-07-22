@@ -61,8 +61,8 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     user_id = update.message.from_user.id
     SESSION[user_id] = {"numbers": numbers, "txt_path": input_path}
-    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).")
-Masukkan FN (misal: TES):")
+    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN (misal: TES):")
+
     return ASK_FN
 
 async def receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
