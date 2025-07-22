@@ -1,4 +1,3 @@
-
 import os
 from telegram import Update, InputFile, ReplyKeyboardRemove
 from telegram.ext import (
@@ -12,16 +11,18 @@ SESSION = {}
 def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
     chunks = [numbers[i:i+split_size] for i in range(0, len(numbers), split_size)]
     file_paths = []
+    counter = 1  # ✅ global counter untuk FN
 
     for i, group in enumerate(chunks, 1):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
         with open(path, 'w', encoding='utf-8') as f:
-            for idx, number in enumerate(group, 1):
+            for number in group:
                 f.write("BEGIN:VCARD\n")
                 f.write("VERSION:3.0\n")
-                f.write(f"FN:{fn_base} {idx}\n")
+                f.write(f"FN:{fn_base} {counter}\n")
                 f.write(f"TEL:{number}\n")
                 f.write("END:VCARD\n\n")
+                counter += 1
         file_paths.append(path)
     return file_paths
 
