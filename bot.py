@@ -242,12 +242,10 @@ def register_rename_handlers(app):
     app.add_handler(conv_rename_file)
     app.add_handler(conv_rename_contact)
 
-# === handler error ===
+# === error handler ===
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
     error = context.error
-    # Kirim notifikasi ke chat admin atau log ke console
     print(f"⚠️ Terjadi error: {error}")
-    # Jika ingin kirim pesan ke user:
     if isinstance(update, Update) and update.effective_chat:
         try:
             await context.bot.send_message(
@@ -263,6 +261,7 @@ def main():
     if not TOKEN:
         raise Exception("Env var TELEGRAM_BOT_TOKEN tidak ditemukan!")
     app = ApplicationBuilder().token(TOKEN).build()
+    app.add_error_handler(handle_error)
 
     conv_tovcf = ConversationHandler(
         entry_points=[CommandHandler("to_vcf", to_vcf)],
@@ -288,7 +287,6 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(conv_tovcf)
     app.add_handler(conv_manual)
-    app.add_error_handler(handle_error)
     register_rename_handlers(app)
 
     print("Bot aktif...")
