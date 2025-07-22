@@ -17,11 +17,11 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
         with open(path, 'w', encoding='utf-8') as f:
             for number in group:
-                f.write("BEGIN:VCARD\n")
-                f.write("VERSION:3.0\n")
-                f.write(f"FN:{fn_base} {counter}\n")
-                f.write(f"TEL:{number}\n")
-                f.write("END:VCARD\n\n")
+                f.write("BEGIN:VCARD\r\n")
+                f.write("VERSION:3.0\r\n")
+                f.write(f"FN:{fn_base} {counter}\r\n")
+                f.write(f"TEL:{number}\r\n")
+                f.write("END:VCARD\r\n\r\n")
                 counter += 1
         file_paths.append(path)
     return file_paths
