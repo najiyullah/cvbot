@@ -67,6 +67,8 @@ def generate_single_vcf(numbers, fn_base, filename, output_path):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
+        "text = "Premium Only"
+        print(text.center(40, "-"))
         "Gunakan /to_vcf atau /manual untuk membuat file .vcf.\n"
         "Gunakan /rename_file untuk mengganti nama file .vcf\n"
         "Gunakan /rename_contact untuk mengganti nama semua kontak di file .vcf"
