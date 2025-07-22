@@ -193,8 +193,9 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
     if not data:
         await update.message.reply_text("Terjadi kesalahan. Mulai ulang.")
         return ConversationHandler.END
+
     old_path = data["vcf_path"]
-    new_path = old_path.replace(".vcf", "_renamed.vcf")
+    new_path = old_path  # Overwrite isi file dengan nama yang sama
     with open(old_path, "r", encoding="utf-8") as f_in, open(new_path, "w", encoding="utf-8") as f_out:
         count = 1
         for line in f_in:
@@ -205,10 +206,11 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
                 count += 1
             else:
                 f_out.write(line)
-    with open(new_path, "rb") as f:
-        await update.message.reply_document(InputFile(f, filename=os.path.basename(new_path)))
+
+    with open(old_path, "rb") as f:
+        await update.message.reply_document(InputFile(f, filename=os.path.basename(old_path)))
+
     os.remove(old_path)
-    os.remove(new_path)
     SESSION.pop(user_id, None)
     return ConversationHandler.END
 
@@ -271,7 +273,6 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(conv_tovcf)
     app.add_handler(conv_manual)
-
     register_rename_handlers(app)
 
     print("Bot aktif...")
