@@ -67,12 +67,14 @@ def generate_single_vcf(numbers, fn_base, filename, output_path):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "text = "Premium Only"
-        print(text.center(40, "-"))
-        "Gunakan /to_vcf atau /manual untuk membuat file .vcf.\n"
-        "Gunakan /rename_file untuk mengganti nama file .vcf\n"
-        "Gunakan /rename_contact untuk mengganti nama semua kontak di file .vcf"
-    )
+    "<b>👋 WELCOME TO JAMAL CV BOT</b>\n"
+    "🔐 <i>BOT INI HANYA BISA DIGUNAKAN OLEH PENGGUNA PREMIUM.</i>\n\n"
+    "🧾 <b>/to_vcf</b> — Ubah file .txt jadi .vcf dan bagi ke beberapa bagian.\n"
+    "✍️ <b>/manual</b> — Buat file .vcf dari daftar nomor secara manual.\n"
+    "📝 <b>/rename_file</b> — Ganti nama file .vcf.\n"
+    "🔄 <b>/rename_contact</b> — Ganti nama semua kontak dalam file .vcf.\n"
+    "💳 <b>/qris</b> — Lihat metode pembayaran untuk akses premium."
+, parse_mode="HTML")
 
 # === /to_vcf flow ===
 async def to_vcf(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -299,6 +301,10 @@ async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_photo(
         photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
         caption="""💳 Silakan scan QRIS di atas untuk pembayaran akses premium.
+
+        PRICELIST : 1 BULAN 25K
+                    2 BULAN 50K
+                    5 BULAN 100K
         
         Setelah membayar, kirim bukti dan ID Telegram Anda ke admin @jamalcok."""
     )
