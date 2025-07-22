@@ -1,6 +1,6 @@
 import os
 import json
-from telegram import Update, InputFile, ReplyKeyboardRemove
+from telegram import Update, InputFile, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     ConversationHandler, ContextTypes, filters
@@ -13,7 +13,7 @@ RENAME_CONTACT_WAIT_FILE, RENAME_CONTACT_WAIT_FN = range(9, 11)
 SESSION = {}
 
 # === daftar admin ===
-ADMINS = {379525054}  # Ganti dengan user_id admin bot
+ADMINS = {123456789}  # Ganti dengan user_id admin bot
 
 # === daftar user premium ===
 import datetime
@@ -245,9 +245,11 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
     with open(old_path, "r", encoding="utf-8") as f_in:
         for line in f_in:
             if line.startswith("FN:"):
-                output_lines.append(f"FN:{new_fn} {count}\r\n")
+                output_lines.append(f"FN:{new_fn} {count}
+")
             elif line.startswith("N:"):
-                output_lines.append(f"N:{new_fn} {count};;;\r\n")
+                output_lines.append(f"N:{new_fn} {count};;;
+")
                 count += 1
             else:
                 output_lines.append(line)
@@ -292,6 +294,13 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
+
+async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_photo(
+        photo="https://imgur.com/GwckH7d,  # ganti dengan link Anda sendiri
+        caption="💳 Silakan scan QRIS di atas untuk pembayaran akses premium.\n\n
+        Setelah membayar, kirim bukti dan ID Telegram Anda ke admin @jamalcok."
+    )
 
 # === daftar handler tambahan ===
 def register_rename_handlers(app):
@@ -362,7 +371,9 @@ async def premium_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lines = [f"👑 List Premium Users ({len(PREMIUM_USERS)}):"]
     for uid, tgl in PREMIUM_USERS.items():
         lines.append(f"- {uid} (sejak {tgl})")
-    await update.message.reply_text("\n".join(lines))
+    await update.message.reply_text("
+".join(lines))
+
 
 # === error handler ===
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
@@ -407,6 +418,7 @@ def main():
     )
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("qris", qris))
     app.add_handler(CommandHandler("grant", grant_access))
     app.add_handler(CommandHandler("revoke", revoke_access))
     app.add_handler(CommandHandler("premium_list", premium_list))
