@@ -302,11 +302,12 @@ async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
         caption="""💳 Silakan scan QRIS di atas untuk pembayaran akses premium.
 
-        PRICELIST : 1 BULAN 25K
-                    2 BULAN 50K
-                    5 BULAN 100K
+        PRICELIST : 
+        1 BULAN 25K
+        2 BULAN 50K
+        5 BULAN 100K
         
-        Setelah membayar, kirim bukti dan ID Telegram Anda ke admin @jamalcok."""
+        Setelah membayar, kirim bukti dan ID Telegram Anda ke Admin @jamalcok."""
     )
 
 # === daftar handler tambahan ===
