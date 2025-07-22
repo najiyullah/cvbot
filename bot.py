@@ -9,9 +9,9 @@ ASK_FILE, ASK_FN, ASK_FILENAME, ASK_SPLIT = range(4)
 SESSION = {}
 
 def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
-    chunks = [numbers[i:i+split_size] for i in range(0, len(numbers), split_size)]
+    chunks = [numbers[i:i + split_size] for i in range(0, len(numbers), split_size)]
     file_paths = []
-    counter = 1  # ✅ global counter untuk FN
+    counter = 1
 
     for i, group in enumerate(chunks, 1):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
@@ -46,25 +46,31 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     with open(input_path, 'r', encoding='utf-8') as f:
         numbers = [line.strip() for line in f if line.strip()]
 
+    if not numbers:
+        await update.message.reply_text("❌ File .txt kosong atau tidak valid.")
+        return ConversationHandler.END
+
     user_id = update.message.from_user.id
     SESSION[user_id] = {
         "numbers": numbers,
         "txt_path": input_path
     }
 
-    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).\nSekarang, masukkan FN yang diinginkan (contoh: TES)")
+    await update.message.reply_text(
+        f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN yang diinginkan (misal: TES):"
+    )
     return ASK_FN
 
 async def receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     SESSION[user_id]["fn"] = update.message.text.strip()
-    await update.message.reply_text("Masukkan nama file output yang diinginkan (tanpa ekstensi). Contoh: TES")
+    await update.message.reply_text("Masukkan nama file hasil (tanpa .vcf):")
     return ASK_FILENAME
 
 async def receive_filename(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     SESSION[user_id]["file_name"] = update.message.text.strip()
-    await update.message.reply_text("Ingin dibagi menjadi berapa kontak per file? Contoh: 50")
+    await update.message.reply_text("Berapa jumlah kontak per file? Contoh: 50")
     return ASK_SPLIT
 
 async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -72,11 +78,11 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
     split_str = update.message.text.strip()
 
     if not split_str.isdigit():
-        await update.message.reply_text("Masukkan angka saja. Contoh: 50")
+        await update.message.reply_text("Masukkan angka yang valid, contoh: 50")
         return ASK_SPLIT
 
     split_size = int(split_str)
-    data = SESSION.get(user_id)
+    data = SESSION[user_id]
     temp_dir = "/tmp/split_output"
     os.makedirs(temp_dir, exist_ok=True)
 
@@ -89,11 +95,14 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     for path in file_paths:
-        await update.message.reply_document(InputFile(path))
+        await update.message.reply_document(
+            InputFile(path),
+            filename=os.path.basename(path)  # penting agar dikenali sebagai .vcf
+        )
 
-    await update.message.reply_text("✅ Selesai mengirim semua file.", reply_markup=ReplyKeyboardRemove())
+    await update.message.reply_text("✅ Semua file berhasil dikirim.", reply_markup=ReplyKeyboardRemove())
 
-    # Bersihkan
+    # Cleanup
     os.remove(data["txt_path"])
     for path in file_paths:
         os.remove(path)
