@@ -296,8 +296,9 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_photo(
         photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
-        caption="💳 Silakan scan QRIS di atas untuk pembayaran akses premium.\n\n
-        Setelah membayar, kirim bukti dan ID Telegram Anda ke admin @jamalcok."
+        caption="""💳 Silakan scan QRIS di atas untuk pembayaran akses premium.
+        
+        Setelah membayar, kirim bukti dan ID Telegram Anda ke admin @jamalcok."""
     )
 
 # === daftar handler tambahan ===
