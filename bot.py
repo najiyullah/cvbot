@@ -124,6 +124,10 @@ async def manual_receive_filename(update: Update, context: ContextTypes.DEFAULT_
     filename = update.message.text.strip()
     temp_path = f"/tmp/{filename}.vcf"
     generate_single_vcf(data["manual_numbers"], data["manual_fn"], filename, temp_path)
+    with open(temp_path, "r", encoding="utf-8") as check:
+    isi = check.read()
+    print("=== DEBUG .vcf CONTENT ===")
+    print(isi)
     await update.message.reply_document(InputFile(temp_path, filename=f"{filename}.vcf"))
     os.remove(temp_path)
     SESSION.pop(user_id, None)
