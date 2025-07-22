@@ -18,19 +18,12 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
         with open(path, 'w', encoding='utf-8') as f:
             for number in group:
-                f.write("BEGIN:VCARD
-")
-                f.write("VERSION:3.0
-")
-                f.write(f"FN:{fn_base} {counter}
-")
-                f.write(f"N:{fn_base} {counter};;;
-")
-                f.write(f"TEL:{number}
-")
-                f.write("END:VCARD
-
-")
+                f.write("BEGIN:VCARD")
+                f.write("VERSION:3.0")
+                f.write(f"FN:{fn_base} {counter}")
+                f.write(f"N:{fn_base} {counter};;;")
+                f.write(f"TEL:{number}")
+                f.write("END:VCARD")
                 counter += 1
         file_paths.append(path)
     return file_paths
@@ -38,19 +31,12 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
 def generate_single_vcf(numbers, fn_base, filename, output_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         for i, number in enumerate(numbers, 1):
-            f.write("BEGIN:VCARD
-")
-            f.write("VERSION:3.0
-")
-            f.write(f"FN:{fn_base} {i}
-")
-            f.write(f"N:{fn_base} {i};;;
-")
-            f.write(f"TEL:{number}
-")
-            f.write("END:VCARD
-
-")
+            f.write("BEGIN:VCARD")
+            f.write("VERSION:3.0")
+            f.write(f"FN:{fn_base} {i}")
+            f.write(f"N:{fn_base} {i};;;")
+            f.write(f"TEL:{number}")
+            f.write("END:VCARD")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file vcf.")
