@@ -151,7 +151,7 @@ async def rename_file_receive(update: Update, context: ContextTypes.DEFAULT_TYPE
     await file.download_to_drive(input_path)
     await update.message.reply_text(f"✅ File '{doc.file_name}' berhasil diunggah.")
     user_id = update.message.from_user.id
-    SESSION[user_id] = {"vcf_path": input_path}
+    SESSION[user_id] = {"vcf_path": input_path, "original_filename": doc.file_name}
     await update.message.reply_text("Masukkan nama file baru (tanpa .vcf):")
     return RENAME_FILE_WAIT_NAME
 
@@ -185,7 +185,7 @@ async def rename_contact_receive_file(update: Update, context: ContextTypes.DEFA
     await file.download_to_drive(input_path)
     await update.message.reply_text(f"✅ File '{doc.file_name}' berhasil diunggah.")
     user_id = update.message.from_user.id
-    SESSION[user_id] = {"vcf_path": input_path}
+    SESSION[user_id] = {"vcf_path": input_path, "original_filename": doc.file_name}
     await update.message.reply_text("Masukkan nama baru untuk semua kontak (FN):")
     return RENAME_CONTACT_WAIT_FN
 
@@ -203,9 +203,11 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
     with open(old_path, "r", encoding="utf-8") as f_in:
         for line in f_in:
             if line.startswith("FN:"):
-                output_lines.append(f"FN:{new_fn} {count}\r\n")
+                output_lines.append(f"FN:{new_fn} {count}
+")
             elif line.startswith("N:"):
-                output_lines.append(f"N:{new_fn} {count};;;\r\n")
+                output_lines.append(f"N:{new_fn} {count};;;
+")
                 count += 1
             else:
                 output_lines.append(line)
@@ -220,7 +222,7 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
         f_out.writelines(output_lines)
 
     with open(old_path, "rb") as f:
-        await update.message.reply_document(InputFile(f, filename=os.path.basename(old_path)))
+        await update.message.reply_document(InputFile(f, filename=data.get("original_filename", os.path.basename(old_path))))
 
     os.remove(old_path)
     SESSION.pop(user_id, None)
