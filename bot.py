@@ -18,7 +18,7 @@ ADMINS = {379525054}  # Ganti dengan user_id admin bot
 import datetime
 PREMIUM_USERS = {}  # user_id: tanggal_akses (str)
 
-def is_premium(user_id: int) -> bool:(user_id: int) -> bool:
+def is_premium(user_id: int) -> bool
     return user_id in PREMIUM_USERS
 
 def is_admin(user_id: int) -> bool:
