@@ -59,6 +59,7 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file = await doc.get_file()
     input_path = f"/tmp/{doc.file_id}.txt"
     await file.download_to_drive(input_path)
+    await update.message.reply_text(f"✅ File '{doc.file_name}' berhasil diunggah.")
     with open(input_path, 'r', encoding='utf-8') as f:
         numbers = [line.strip() for line in f if line.strip()]
     if not numbers:
@@ -148,6 +149,7 @@ async def rename_file_receive(update: Update, context: ContextTypes.DEFAULT_TYPE
     file = await doc.get_file()
     input_path = f"/tmp/{doc.file_id}.vcf"
     await file.download_to_drive(input_path)
+    await update.message.reply_text(f"✅ File '{doc.file_name}' berhasil diunggah.")
     user_id = update.message.from_user.id
     SESSION[user_id] = {"vcf_path": input_path}
     await update.message.reply_text("Masukkan nama file baru (tanpa .vcf):")
@@ -181,6 +183,7 @@ async def rename_contact_receive_file(update: Update, context: ContextTypes.DEFA
     file = await doc.get_file()
     input_path = f"/tmp/{doc.file_id}.vcf"
     await file.download_to_drive(input_path)
+    await update.message.reply_text(f"✅ File '{doc.file_name}' berhasil diunggah.")
     user_id = update.message.from_user.id
     SESSION[user_id] = {"vcf_path": input_path}
     await update.message.reply_text("Masukkan nama baru untuk semua kontak (FN):")
