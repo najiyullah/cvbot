@@ -1,2 +1,2 @@
 python-telegram-bot==20.8
-vobject
+vobject==0.9.6.1
