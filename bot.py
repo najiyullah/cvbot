@@ -18,12 +18,12 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
         with open(path, 'w', encoding='utf-8') as f:
             for number in group:
-                f.write("BEGIN:VCARD")
-                f.write("VERSION:3.0")
-                f.write(f"FN:{fn_base} {counter}")
-                f.write(f"N:{fn_base} {counter};;;")
-                f.write(f"TEL:{number}")
-                f.write("END:VCARD")
+                f.write("BEGIN:VCARD\r\n")
+                f.write("VERSION:3.0\r\n")
+                f.write(f"FN:{fn_base} {counter}\r\n")
+                f.write(f"N:{fn_base} {counter};;;\r\n")
+                f.write(f"TEL:{number}\r\n")
+                f.write("END:VCARD\r\n\r\n")
                 counter += 1
         file_paths.append(path)
     return file_paths
@@ -31,17 +31,17 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
 def generate_single_vcf(numbers, fn_base, filename, output_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         for i, number in enumerate(numbers, 1):
-            f.write("BEGIN:VCARD")
-            f.write("VERSION:3.0")
-            f.write(f"FN:{fn_base} {i}")
-            f.write(f"N:{fn_base} {i};;;")
-            f.write(f"TEL:{number}")
-            f.write("END:VCARD")
+            f.write("BEGIN:VCARD\r\n")
+            f.write("VERSION:3.0\r\n")
+            f.write(f"FN:{fn_base} {i}\r\n")
+            f.write(f"N:{fn_base} {i};;;\r\n")
+            f.write(f"TEL:{number}\r\n")
+            f.write("END:VCARD\r\n\r\n")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file vcf.")
+    await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file .vcf.")
 
-# ======== /to_vcf ========
+# /to_vcf flow
 async def to_vcf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Silakan kirim file .txt yang berisi daftar nomor.")
     return ASK_FILE
@@ -62,7 +62,6 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     SESSION[user_id] = {"numbers": numbers, "txt_path": input_path}
     await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN (misal: TES):")
-
     return ASK_FN
 
 async def receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -98,7 +97,7 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
     SESSION.pop(user_id, None)
     return ConversationHandler.END
 
-# ======== /manual ========
+# /manual flow
 async def manual(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Kirim daftar nomor (satu per baris).")
     return MANUAL_NUMBERS
@@ -130,10 +129,12 @@ async def manual_receive_filename(update: Update, context: ContextTypes.DEFAULT_
     SESSION.pop(user_id, None)
     return ConversationHandler.END
 
+# cancel
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
+# main
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
