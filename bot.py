@@ -7,8 +7,6 @@ from telegram.ext import (
     ConversationHandler, ContextTypes, filters
 )
 
-import re
-
 ASK_FILE, ASK_FN, ASK_FILENAME, ASK_SPLIT = range(4)
 SESSION = {}
 
@@ -30,18 +28,24 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         file_paths.append(path)
     return file_paths
 
+# ===== FIXED /to_txt function with character cleaning =====
 def convert_vcf_to_txt(vcf_path, txt_path):
+    invisible = ['‪', '‬', '‎', '‏', '⁦']
+
     def clean_number(line):
         line = line.strip().replace("TEL:", "").strip()
+        for char in invisible:
+            line = line.replace(char, '')
         return ''.join(c for c in line if c.isdigit() or c == '+')
 
-    with open(vcf_path, 'r', encoding='utf-8') as vcf_file, \
-         open(txt_path, 'w', encoding='utf-8-sig') as txt_file:  # ✅ Perhatikan utf-8-sig
+    with open(vcf_path, 'r', encoding='utf-8') as vcf_file, open(txt_path, 'w', encoding='utf-8') as txt_file:
         for line in vcf_file:
             if line.strip().startswith("TEL:"):
                 cleaned = clean_number(line)
                 if cleaned:
-                    txt_file.write(cleaned + '\n')
+                    txt_file.write(cleaned + "\n")
+
+# =========================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /to_txt untuk mulai.")
@@ -73,7 +77,9 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "txt_path": input_path
     }
 
-    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN yang diinginkan (misal: TES):")
+    await update.message.reply_text(
+        f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN yang diinginkan (misal: TES):"
+    )
     return ASK_FN
 
 async def receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -101,11 +107,19 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
     temp_dir = "/tmp/split_output"
     os.makedirs(temp_dir, exist_ok=True)
 
-    file_paths = split_and_generate_vcf(data["numbers"], data["fn"], data["file_name"], split_size, temp_dir)
+    file_paths = split_and_generate_vcf(
+        data["numbers"],
+        data["fn"],
+        data["file_name"],
+        split_size,
+        temp_dir
+    )
 
     for path in file_paths:
         with open(path, "rb") as f:
-            await update.message.reply_document(InputFile(f, filename=os.path.basename(path)))
+            await update.message.reply_document(
+                InputFile(f, filename=os.path.basename(path))
+            )
 
     await update.message.reply_text("✅ Semua file berhasil dikirim.", reply_markup=ReplyKeyboardRemove())
 
@@ -116,6 +130,7 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return ConversationHandler.END
 
+# ========== /to_txt handler ==========
 async def to_txt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Silakan kirim file .vcf yang ingin dikonversi ke .txt.")
 
@@ -130,15 +145,19 @@ async def handle_vcf_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await file.download_to_drive(input_path)
 
     convert_vcf_to_txt(input_path, output_path)
-    await update.message.reply_document(InputFile(output_path, filename="converted.txt"))
+    await update.message.reply_document(
+        InputFile(output_path, filename="converted.txt")
+    )
 
     os.remove(input_path)
     os.remove(output_path)
 
+# ========== Cancel ==========
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
+# ========== Main ==========
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
