@@ -57,7 +57,7 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
 
     await update.message.reply_text(
-        f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN yang diinginkan (misal: TES):"
+        f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan Nama Kontak yang diinginkan (misal: TES):"
     )
     return ASK_FN
 
