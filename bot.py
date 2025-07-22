@@ -11,6 +11,12 @@ RENAME_FILE_WAIT_FILE, RENAME_FILE_WAIT_NAME = range(7, 9)
 RENAME_CONTACT_WAIT_FILE, RENAME_CONTACT_WAIT_FN = range(9, 11)
 SESSION = {}
 
+# === daftar user premium ===
+PREMIUM_USERS = {123456789}  # Ganti dengan user_id pengguna yang Anda izinkan
+
+def is_premium(user_id: int) -> bool:
+    return user_id in PREMIUM_USERS
+
 def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
     chunks = [numbers[i:i + split_size] for i in range(0, len(numbers), split_size)]
     file_paths = []
@@ -48,6 +54,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === /to_vcf flow ===
 async def to_vcf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_premium(user_id):
+        await update.message.reply_text("❌ Bot ini hanya untuk pengguna berbayar. Hubungi admin untuk akses.")
+        return ConversationHandler.END
     await update.message.reply_text("Silakan kirim file .txt yang berisi daftar nomor.")
     return ASK_FILE
 
@@ -105,6 +115,10 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === /manual flow ===
 async def manual(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_premium(user_id):
+        await update.message.reply_text("❌ Bot ini hanya untuk pengguna berbayar. Hubungi admin untuk akses.")
+        return ConversationHandler.END
     await update.message.reply_text("Kirim daftar nomor (satu per baris).")
     return MANUAL_NUMBERS
 
@@ -138,6 +152,10 @@ async def manual_receive_filename(update: Update, context: ContextTypes.DEFAULT_
 
 # === fitur rename file .vcf ===
 async def rename_file_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_premium(user_id):
+        await update.message.reply_text("❌ Bot ini hanya untuk pengguna berbayar. Hubungi admin untuk akses.")
+        return ConversationHandler.END
     await update.message.reply_text("Kirim file .vcf yang ingin diubah namanya.")
     return RENAME_FILE_WAIT_FILE
 
@@ -172,6 +190,10 @@ async def rename_file_receive_name(update: Update, context: ContextTypes.DEFAULT
 
 # === fitur rename contact di .vcf ===
 async def rename_contact_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_premium(user_id):
+        await update.message.reply_text("❌ Bot ini hanya untuk pengguna berbayar. Hubungi admin untuk akses.")
+        return ConversationHandler.END
     await update.message.reply_text("Kirim file .vcf yang ingin diubah nama kontaknya.")
     return RENAME_CONTACT_WAIT_FILE
 
@@ -203,9 +225,11 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
     with open(old_path, "r", encoding="utf-8") as f_in:
         for line in f_in:
             if line.startswith("FN:"):
-                output_lines.append(f"FN:{new_fn} {count}\r\n")
+                output_lines.append(f"FN:{new_fn} {count}
+")
             elif line.startswith("N:"):
-                output_lines.append(f"N:{new_fn} {count};;;\r\n")
+                output_lines.append(f"N:{new_fn} {count};;;
+")
                 count += 1
             else:
                 output_lines.append(line)
