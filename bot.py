@@ -295,7 +295,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_photo(
-        photo="https://imgur.com/GwckH7d,  # ganti dengan link Anda sendiri
+        photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
         caption="💳 Silakan scan QRIS di atas untuk pembayaran akses premium.\n\n
         Setelah membayar, kirim bukti dan ID Telegram Anda ke admin @jamalcok."
     )
@@ -369,9 +369,7 @@ async def premium_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lines = [f"👑 List Premium Users ({len(PREMIUM_USERS)}):"]
     for uid, tgl in PREMIUM_USERS.items():
         lines.append(f"- {uid} (sejak {tgl})")
-    await update.message.reply_text("
-".join(lines))
-
+    await update.message.reply_text("\n".join(lines))
 
 # === error handler ===
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
