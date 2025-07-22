@@ -1,3 +1,4 @@
+
 import os
 from telegram import Update, InputFile, ReplyKeyboardRemove
 from telegram.ext import (
@@ -17,11 +18,17 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
         with open(path, 'w', encoding='utf-8') as f:
             for number in group:
-                f.write("BEGIN:VCARD\r\n")
-                f.write("VERSION:3.0\r\n")
-                f.write(f"FN:{fn_base} {counter}\r\n")
-                f.write(f"TEL:{number}\r\n")
-                f.write("END:VCARD\r\n\r\n")
+                f.write("BEGIN:VCARD
+")
+                f.write("VERSION:3.0
+")
+                f.write(f"FN:{fn_base} {counter}
+")
+                f.write(f"TEL:{number}
+")
+                f.write("END:VCARD
+
+")
                 counter += 1
         file_paths.append(path)
     return file_paths
@@ -57,7 +64,8 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
 
     await update.message.reply_text(
-        f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN yang diinginkan (misal: TES):"
+        f"File diterima ✅ ({len(numbers)} kontak).
+Masukkan FN yang diinginkan (misal: TES):"
     )
     return ASK_FN
 
@@ -95,14 +103,13 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     for path in file_paths:
-        await update.message.reply_document(
-            InputFile(path),
-            filename=os.path.basename(path)  # penting agar dikenali sebagai .vcf
-        )
+        with open(path, "rb") as f:
+            await update.message.reply_document(
+                InputFile(f, filename=os.path.basename(path))
+            )
 
     await update.message.reply_text("✅ Semua file berhasil dikirim.", reply_markup=ReplyKeyboardRemove())
 
-    # Cleanup
     os.remove(data["txt_path"])
     for path in file_paths:
         os.remove(path)
