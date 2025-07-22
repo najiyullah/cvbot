@@ -31,7 +31,9 @@ def convert_vcf_to_txt(vcf_path, txt_path):
     with open(vcf_path, 'r', encoding='utf-8') as vcf_file, open(txt_path, 'w', encoding='utf-8') as txt_file:
         for line in vcf_file:
             if line.strip().startswith("TEL:"):
-                txt_file.write(line.strip().replace("TEL:", "") + "\n")
+                number = line.strip().replace("TEL:", "")
+                number = re.sub(r"[^\d+]", "", number)  # hanya + dan angka
+                txt_file.write(number + "\n")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /to_txt untuk mulai.")
