@@ -1,57 +1,108 @@
 
 import os
-from telegram import Update, InputFile
+from telegram import Update, InputFile, ReplyKeyboardRemove
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
-    ContextTypes, filters
+    ConversationHandler, ContextTypes, filters
 )
 
-def convert_txt_to_vcf(txt_path, vcf_path):
-    with open(txt_path, 'r') as txt_file, open(vcf_path, 'w') as vcf_file:
-        for i, line in enumerate(txt_file):
-            number = line.strip()
-            if not number:
-                continue
-            vcf_file.write("BEGIN:VCARD\n")
-            vcf_file.write("VERSION:3.0\n")
-            vcf_file.write(f"FN:Contact {i+1}\n")
-            vcf_file.write(f"TEL:{number}\n")
-            vcf_file.write("END:VCARD\n\n")
+ASK_FILE, ASK_FN, ASK_FILENAME, ASK_SPLIT = range(4)
+SESSION = {}
 
-def convert_vcf_to_txt(vcf_path, txt_path):
-    with open(vcf_path, 'r') as vcf_file, open(txt_path, 'w') as txt_file:
-        for line in vcf_file:
-            if line.startswith("TEL"):
-                txt_file.write(line.replace("TEL:", "").strip() + "\n")
+def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
+    chunks = [numbers[i:i+split_size] for i in range(0, len(numbers), split_size)]
+    file_paths = []
+
+    for i, group in enumerate(chunks, 1):
+        path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
+        with open(path, 'w', encoding='utf-8') as f:
+            for idx, number in enumerate(group, 1):
+                f.write("BEGIN:VCARD\n")
+                f.write("VERSION:3.0\n")
+                f.write(f"FN:{fn_base} {idx}\n")
+                f.write(f"TEL:{number}\n")
+                f.write("END:VCARD\n\n")
+        file_paths.append(path)
+    return file_paths
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Halo! Bot siap. Gunakan /to_vcf atau /to_txt.")
+    await update.message.reply_text("Gunakan /to_vcf untuk mulai konversi .txt ke .vcf")
 
-async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def to_vcf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Silakan kirim file .txt yang berisi daftar nomor.")
+    return ASK_FILE
+
+async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     doc = update.message.document
-    if not doc:
-        await update.message.reply_text("Kirim file .txt atau .vcf setelah perintah ini.")
-        return
+    if not doc or not doc.file_name.endswith(".txt"):
+        await update.message.reply_text("Kirim file .txt saja.")
+        return ASK_FILE
 
     file = await doc.get_file()
-    filename = doc.file_name.lower()
-    input_path = f"/tmp/{doc.file_id}_{filename}"
-    output_path = input_path + (".vcf" if filename.endswith(".txt") else ".txt")
-
+    input_path = f"/tmp/{doc.file_id}.txt"
     await file.download_to_drive(input_path)
 
-    if filename.endswith(".txt"):
-        convert_txt_to_vcf(input_path, output_path)
-        await update.message.reply_document(document=InputFile(output_path), filename="converted.vcf")
-    elif filename.endswith(".vcf"):
-        convert_vcf_to_txt(input_path, output_path)
-        await update.message.reply_document(document=InputFile(output_path), filename="converted.txt")
-    else:
-        await update.message.reply_text("Format file tidak didukung. Kirim .txt atau .vcf saja.")
-        return
+    with open(input_path, 'r', encoding='utf-8') as f:
+        numbers = [line.strip() for line in f if line.strip()]
 
-    os.remove(input_path)
-    os.remove(output_path)
+    user_id = update.message.from_user.id
+    SESSION[user_id] = {
+        "numbers": numbers,
+        "txt_path": input_path
+    }
+
+    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).\nSekarang, masukkan FN yang diinginkan (contoh: TES)")
+    return ASK_FN
+
+async def receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    SESSION[user_id]["fn"] = update.message.text.strip()
+    await update.message.reply_text("Masukkan nama file output yang diinginkan (tanpa ekstensi). Contoh: TES")
+    return ASK_FILENAME
+
+async def receive_filename(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    SESSION[user_id]["file_name"] = update.message.text.strip()
+    await update.message.reply_text("Ingin dibagi menjadi berapa kontak per file? Contoh: 50")
+    return ASK_SPLIT
+
+async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    split_str = update.message.text.strip()
+
+    if not split_str.isdigit():
+        await update.message.reply_text("Masukkan angka saja. Contoh: 50")
+        return ASK_SPLIT
+
+    split_size = int(split_str)
+    data = SESSION.get(user_id)
+    temp_dir = "/tmp/split_output"
+    os.makedirs(temp_dir, exist_ok=True)
+
+    file_paths = split_and_generate_vcf(
+        data["numbers"],
+        data["fn"],
+        data["file_name"],
+        split_size,
+        temp_dir
+    )
+
+    for path in file_paths:
+        await update.message.reply_document(InputFile(path))
+
+    await update.message.reply_text("✅ Selesai mengirim semua file.", reply_markup=ReplyKeyboardRemove())
+
+    # Bersihkan
+    os.remove(data["txt_path"])
+    for path in file_paths:
+        os.remove(path)
+    SESSION.pop(user_id, None)
+
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
 
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -59,12 +110,22 @@ def main():
         raise Exception("Env var TELEGRAM_BOT_TOKEN tidak ditemukan!")
 
     app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("to_vcf", handle_document))
-    app.add_handler(CommandHandler("to_txt", handle_document))
-    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
 
-    print("Bot berjalan...")
+    conv = ConversationHandler(
+        entry_points=[CommandHandler("to_vcf", to_vcf)],
+        states={
+            ASK_FILE: [MessageHandler(filters.Document.ALL, receive_file)],
+            ASK_FN: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_fn)],
+            ASK_FILENAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_filename)],
+            ASK_SPLIT: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_split)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(conv)
+
+    print("Bot aktif...")
     app.run_polling()
 
 if __name__ == "__main__":
