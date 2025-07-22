@@ -33,8 +33,8 @@ def generate_single_vcf(numbers, fn_base, filename, output_path):
         for i, number in enumerate(numbers, 1):
             f.write("BEGIN:VCARD\r\n")
             f.write("VERSION:3.0\r\n")
-            f.write(f"FN:{fn_base} {i}\r\n")
-            f.write(f"N:{fn_base} {i};;;\r\n")
+            f.write(f"FN:{fn_base} {conter}\r\n")
+            f.write(f"N:{fn_base} {counter};;;\r\n")
             f.write(f"TEL:{number}\r\n")
             f.write("END:VCARD\r\n\r\n")
 
