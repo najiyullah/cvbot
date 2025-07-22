@@ -199,19 +199,29 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
 
     old_path = data["vcf_path"]
     new_path = old_path  # Overwrite isi file dengan nama yang sama
-    with open(old_path, "r", encoding="utf-8") as f_in, open(new_path, "w", encoding="utf-8") as f_out:
-        count = 1
-        for line in f_in:
-            if line.startswith("FN:"):
-                f_out.write(f"FN:{new_fn} {count}\r\n")
-            elif line.startswith("N:"):
-                f_out.write(f"N:{new_fn} {count};;;\r\n")
-                count += 1
-            else:
-                f_out.write(line)
+count = 1
+output_lines = []
+with open(old_path, "r", encoding="utf-8") as f_in:
+    for line in f_in:
+        if line.startswith("FN:"):
+            output_lines.append(f"FN:{new_fn} {count}\r\n")
+        elif line.startswith("N:"):
+            output_lines.append(f"N:{new_fn} {count};;;\r\n")
+            count += 1
+        else:
+            output_lines.append(line)
 
-    with open(old_path, "rb") as f:
-        await update.message.reply_document(InputFile(f, filename=os.path.basename(old_path)))
+if count == 1:
+    await update.message.reply_text("❌ Tidak ditemukan baris FN: atau N: di dalam file. Gagal mengganti kontak.")
+    os.remove(old_path)
+    SESSION.pop(user_id, None)
+    return ConversationHandler.END
+
+with open(old_path, "w", encoding="utf-8") as f_out:
+    f_out.writelines(output_lines)
+
+with open(old_path, "rb") as f:
+    await update.message.reply_document(InputFile(f, filename=os.path.basename(old_path)))
 
     os.remove(old_path)
     SESSION.pop(user_id, None)
