@@ -347,9 +347,7 @@ async def premium_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lines = [f"👑 List Premium Users ({len(PREMIUM_USERS)}):"]
     for uid, tgl in PREMIUM_USERS.items():
         lines.append(f"- {uid} (sejak {tgl})")
-    await update.message.reply_text("
-".join(lines))
-
+    await update.message.reply_text("\n".join(lines))
 
 # === error handler ===
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
