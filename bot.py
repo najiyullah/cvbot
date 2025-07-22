@@ -203,11 +203,9 @@ async def rename_contact_receive_fn(update: Update, context: ContextTypes.DEFAUL
     with open(old_path, "r", encoding="utf-8") as f_in:
         for line in f_in:
             if line.startswith("FN:"):
-                output_lines.append(f"FN:{new_fn} {count}
-")
+                output_lines.append(f"FN:{new_fn} {count}\\r\\n")
             elif line.startswith("N:"):
-                output_lines.append(f"N:{new_fn} {count};;;
-")
+                output_lines.append(f"N:{new_fn} {count};;;\\r\\n")
                 count += 1
             else:
                 output_lines.append(line)
