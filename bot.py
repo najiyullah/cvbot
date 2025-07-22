@@ -47,9 +47,11 @@ def generate_single_vcf(numbers, fn_base, filename, output_path):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Gunakan /to_vcf atau /manual untuk membuat file .vcf.\n"
-        "Gunakan /rename_file untuk mengganti nama file .vcf\n"
-        "Gunakan /rename_contact untuk mengganti nama semua kontak di file .vcf"
+        "WELCOME TO JAMAL CV BOT\n"
+        "use /to_vcf untuk convert dari file .txt
+        "use /manual untuk membuat file .vcf (contoh file admin).\n"
+        "use /rename_file untuk mengganti nama file .vcf\n"
+        "use /rename_contact untuk mengganti nama semua kontak di file .vcf"
     )
 
 # === /to_vcf flow ===
