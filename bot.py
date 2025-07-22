@@ -1,3 +1,4 @@
+
 import os
 from telegram import Update, InputFile, ReplyKeyboardRemove
 from telegram.ext import (
@@ -26,11 +27,16 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         file_paths.append(path)
     return file_paths
 
+def convert_vcf_to_txt(vcf_path, txt_path):
+    with open(vcf_path, 'r', encoding='utf-8') as vcf_file, open(txt_path, 'w', encoding='utf-8') as txt_file:
+        for line in vcf_file:
+            if line.strip().startswith("TEL:"):
+                txt_file.write(line.strip().replace("TEL:", "") + "\n")
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /to_txt untuk mulai.")
 
-# ======== FITUR /to_vcf =========
-
+# ======== /to_vcf handlers (dibiarkan sesuai versi sebelumnya) ========
 async def to_vcf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Silakan kirim file .txt yang berisi daftar nomor.")
     return ASK_FILE
@@ -111,20 +117,13 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return ConversationHandler.END
 
-# ======== FITUR /to_txt =========
-
-def convert_vcf_to_txt(vcf_path, txt_path):
-    with open(vcf_path, 'r', encoding='utf-8') as vcf_file, open(txt_path, 'w', encoding='utf-8') as txt_file:
-        for line in vcf_file:
-            if line.strip().startswith("TEL:"):
-                txt_file.write(line.strip().replace("TEL:", "") + "\n")
-
+# ======== /to_txt handlers ========
 async def to_txt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Silakan kirim file .vcf yang ingin dikonversi ke .txt.")
 
 async def handle_vcf_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     doc = update.message.document
-    if not doc or not doc.file_name.endswith(".vcf"):
+    if not doc or not doc.file_name.lower().endswith(".vcf"):
         await update.message.reply_text("Kirim file .vcf saja.")
         return
 
@@ -141,14 +140,12 @@ async def handle_vcf_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     os.remove(input_path)
     os.remove(output_path)
 
-# ======== CANCEL =========
-
+# ======== Cancel ========
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
-# ======== MAIN =========
-
+# ======== Main ========
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
@@ -170,9 +167,9 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(conv)
 
-    # Tambahan handler fitur /to_txt
+    # Handler untuk fitur /to_txt (dengan validasi manual)
     app.add_handler(CommandHandler("to_txt", to_txt))
-    app.add_handler(MessageHandler(filters.Document.FILE_EXTENSION("vcf"), handle_vcf_file))
+    app.add_handler(MessageHandler(filters.Document.ALL, handle_vcf_file))
 
     print("Bot aktif...")
     app.run_polling()
