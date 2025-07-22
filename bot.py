@@ -28,11 +28,12 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
     return file_paths
 
 def generate_single_vcf(numbers, fn_base, filename, output_path):
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, 'w', encoding='utf-8-sig') as f:  # ✅ gunakan utf-8-sig
         for i, number in enumerate(numbers, 1):
             f.write("BEGIN:VCARD\r\n")
             f.write("VERSION:3.0\r\n")
             f.write(f"FN:{fn_base} {i}\r\n")
+            f.write(f"N:{fn_base} {i};;;\r\n")  # ✅ wajib untuk validitas
             f.write(f"TEL:{number}\r\n")
             f.write("END:VCARD\r\n\r\n")
 
