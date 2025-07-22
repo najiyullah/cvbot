@@ -37,7 +37,6 @@ def generate_single_vcf(numbers, fn_base, filename, output_path):
             f.write(f"N:{fn_base} {i};;;\r\n")
             f.write(f"TEL:{number}\r\n")
             f.write("END:VCARD\r\n\r\n")
-            counter += 1
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file .vcf.")
