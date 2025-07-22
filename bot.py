@@ -18,28 +18,39 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         path = os.path.join(temp_dir, f"{file_base}_{i}.vcf")
         with open(path, 'w', encoding='utf-8') as f:
             for number in group:
-                f.write("BEGIN:VCARD\r\n")
-                f.write("VERSION:3.0\r\n")
-                f.write(f"FN:{fn_base} {counter}\r\n")
-                f.write(f"TEL:{number}\r\n")
-                f.write("END:VCARD\r\n\r\n")
+                f.write("BEGIN:VCARD
+")
+                f.write("VERSION:3.0
+")
+                f.write(f"FN:{fn_base} {counter}
+")
+                f.write(f"N:{fn_base} {counter};;;
+")
+                f.write(f"TEL:{number}
+")
+                f.write("END:VCARD
+
+")
                 counter += 1
         file_paths.append(path)
     return file_paths
 
-import vobject
-
 def generate_single_vcf(numbers, fn_base, filename, output_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         for i, number in enumerate(numbers, 1):
-            v = vobject.vCard()
-            v.add('n').value = vobject.vcard.Name(family=fn_base, given=str(i))
-            v.add('fn').value = f"{fn_base} {i}"
-            tel = v.add('tel')
-            tel.type_param = 'CELL'
-            tel.value = number
-            f.write(v.serialize())
-            f.write('\n')
+            f.write("BEGIN:VCARD
+")
+            f.write("VERSION:3.0
+")
+            f.write(f"FN:{fn_base} {i}
+")
+            f.write(f"N:{fn_base} {i};;;
+")
+            f.write(f"TEL:{number}
+")
+            f.write("END:VCARD
+
+")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file vcf.")
@@ -64,7 +75,8 @@ async def receive_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
     user_id = update.message.from_user.id
     SESSION[user_id] = {"numbers": numbers, "txt_path": input_path}
-    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).\nMasukkan FN (misal: TES):")
+    await update.message.reply_text(f"File diterima ✅ ({len(numbers)} kontak).
+Masukkan FN (misal: TES):")
     return ASK_FN
 
 async def receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -132,12 +144,10 @@ async def manual_receive_filename(update: Update, context: ContextTypes.DEFAULT_
     SESSION.pop(user_id, None)
     return ConversationHandler.END
 
-# ======== Cancel ========
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
-# ======== Main ========
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
