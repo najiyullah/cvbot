@@ -327,7 +327,7 @@ async def grant_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         target_id = int(context.args[0])
         PREMIUM_USERS[target_id] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-    save_premium_users()
+        save_premium_users()
         await update.message.reply_text(f"✅ Akses diberikan ke user ID {target_id}.")
     except:
         await update.message.reply_text("❌ Format user_id tidak valid.")
