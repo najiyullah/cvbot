@@ -1,5 +1,6 @@
 
 import os
+import re
 from telegram import Update, InputFile, ReplyKeyboardRemove
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
@@ -30,13 +31,18 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
     return file_paths
 
 def convert_vcf_to_txt(vcf_path, txt_path):
+    def clean_number(raw_line):
+        number = raw_line.strip().replace("TEL:", "").strip()
+        # Hapus semua karakter tak terlihat dan whitespace
+        number = ''.join(c for c in number if c.isdigit() or c == '+')
+        return number
+
     with open(vcf_path, 'r', encoding='utf-8') as vcf_file, open(txt_path, 'w', encoding='utf-8') as txt_file:
         for line in vcf_file:
-            line = line.strip()
-            if line.startswith("TEL:"):
-                number = line.replace("TEL:", "").strip()
-                if number:
-                    txt_file.write(number + "\n")
+            if line.strip().startswith("TEL:"):
+                cleaned = clean_number(line)
+                if cleaned:
+                    txt_file.write(cleaned + "\n")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /to_txt untuk mulai.")
