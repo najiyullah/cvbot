@@ -13,7 +13,7 @@ RENAME_CONTACT_WAIT_FILE, RENAME_CONTACT_WAIT_FN = range(9, 11)
 SESSION = {}
 
 # === daftar admin ===
-ADMINS = {123456789}  # Ganti dengan user_id admin bot
+ADMINS = {379525054}  # Ganti dengan user_id admin bot
 
 # === daftar user premium ===
 import datetime
