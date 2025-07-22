@@ -242,6 +242,21 @@ def register_rename_handlers(app):
     app.add_handler(conv_rename_file)
     app.add_handler(conv_rename_contact)
 
+# === handler error ===
+async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
+    error = context.error
+    # Kirim notifikasi ke chat admin atau log ke console
+    print(f"⚠️ Terjadi error: {error}")
+    # Jika ingin kirim pesan ke user:
+    if isinstance(update, Update) and update.effective_chat:
+        try:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Maaf, terjadi kesalahan internal. Silakan coba lagi."
+            )
+        except:
+            pass
+
 # === main ===
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -273,6 +288,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(conv_tovcf)
     app.add_handler(conv_manual)
+    app.add_error_handler(handle_error)
     register_rename_handlers(app)
 
     print("Bot aktif...")
