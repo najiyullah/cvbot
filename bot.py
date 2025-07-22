@@ -1,4 +1,5 @@
 import os
+import json
 from telegram import Update, InputFile, ReplyKeyboardRemove
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
@@ -16,7 +17,19 @@ ADMINS = {379525054}  # Ganti dengan user_id admin bot
 
 # === daftar user premium ===
 import datetime
-PREMIUM_USERS = {}  # user_id: tanggal_akses (str)
+PREMIUM_FILE = "premium_users.json"
+
+def load_premium_users():
+    if os.path.exists(PREMIUM_FILE):
+        with open(PREMIUM_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_premium_users():
+    with open(PREMIUM_FILE, "w") as f:
+        json.dump(PREMIUM_USERS, f)
+
+PREMIUM_USERS = load_premium_users()
 
 def is_premium(user_id: int) -> bool:
     return user_id in PREMIUM_USERS
@@ -314,6 +327,7 @@ async def grant_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         target_id = int(context.args[0])
         PREMIUM_USERS[target_id] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    save_premium_users()
         await update.message.reply_text(f"✅ Akses diberikan ke user ID {target_id}.")
     except:
         await update.message.reply_text("❌ Format user_id tidak valid.")
@@ -330,6 +344,7 @@ async def revoke_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
         target_id = int(context.args[0])
         if target_id in PREMIUM_USERS:
             PREMIUM_USERS.pop(target_id)
+            save_premium_users()
             await update.message.reply_text(f"✅ Akses user ID {target_id} dicabut.")
         else:
             await update.message.reply_text("❌ User ID tersebut tidak ada dalam daftar premium.")
