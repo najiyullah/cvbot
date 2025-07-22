@@ -29,12 +29,21 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
     return file_paths
 
 def convert_vcf_to_txt(vcf_path, txt_path):
+    invisible_chars = ['\u202a', '\u202c', '\u200e', '\u200f']
+
+    def clean_number(raw):
+        for char in invisible_chars:
+            raw = raw.replace(char, '')
+        number = raw.strip().replace("TEL:", "")
+        number = re.sub(r"[^\d+]", "", number)
+        return number
+
     with open(vcf_path, 'r', encoding='utf-8') as vcf_file, open(txt_path, 'w', encoding='utf-8') as txt_file:
         for line in vcf_file:
             if line.strip().startswith("TEL:"):
-                number = line.strip().replace("TEL:", "")
-                number = re.sub(r"[^\d+]", "", number)  # hanya + dan angka
-                txt_file.write(number + "\n")
+                cleaned = clean_number(line)
+                if cleaned:
+                    txt_file.write(cleaned + "\n")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /to_txt untuk mulai.")
