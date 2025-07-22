@@ -15,9 +15,10 @@ SESSION = {}
 ADMINS = {379525054}  # Ganti dengan user_id admin bot
 
 # === daftar user premium ===
-PREMIUM_USERS = {123456789}  # Ganti dengan user_id pengguna yang Anda izinkan
+import datetime
+PREMIUM_USERS = {}  # user_id: tanggal_akses (str)
 
-def is_premium(user_id: int) -> bool:
+def is_premium(user_id: int) -> bool:(user_id: int) -> bool:
     return user_id in PREMIUM_USERS
 
 def is_admin(user_id: int) -> bool:
@@ -312,7 +313,7 @@ async def grant_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     try:
         target_id = int(context.args[0])
-        PREMIUM_USERS.add(target_id)
+        PREMIUM_USERS[target_id] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
         await update.message.reply_text(f"✅ Akses diberikan ke user ID {target_id}.")
     except:
         await update.message.reply_text("❌ Format user_id tidak valid.")
@@ -328,12 +329,27 @@ async def revoke_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         target_id = int(context.args[0])
         if target_id in PREMIUM_USERS:
-            PREMIUM_USERS.remove(target_id)
+            PREMIUM_USERS.pop(target_id)
             await update.message.reply_text(f"✅ Akses user ID {target_id} dicabut.")
         else:
             await update.message.reply_text("❌ User ID tersebut tidak ada dalam daftar premium.")
     except:
         await update.message.reply_text("❌ Format user_id tidak valid.")
+
+async def premium_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_admin(user_id):
+        await update.message.reply_text("❌ Anda tidak memiliki izin untuk perintah ini.")
+        return
+    if not PREMIUM_USERS:
+        await update.message.reply_text("Tidak ada pengguna premium.")
+        return
+    lines = [f"👑 List Premium Users ({len(PREMIUM_USERS)}):"]
+    for uid, tgl in PREMIUM_USERS.items():
+        lines.append(f"- {uid} (sejak {tgl})")
+    await update.message.reply_text("
+".join(lines))
+
 
 # === error handler ===
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
@@ -380,6 +396,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("grant", grant_access))
     app.add_handler(CommandHandler("revoke", revoke_access))
+    app.add_handler(CommandHandler("premium_list", premium_list))
     app.add_handler(conv_tovcf)
     app.add_handler(conv_manual)
     register_rename_handlers(app)
