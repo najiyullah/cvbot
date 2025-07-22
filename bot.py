@@ -12,7 +12,7 @@ RENAME_CONTACT_WAIT_FILE, RENAME_CONTACT_WAIT_FN = range(9, 11)
 SESSION = {}
 
 # === daftar user premium ===
-PREMIUM_USERS = {123456789}  # Ganti dengan user_id pengguna yang Anda izinkan
+PREMIUM_USERS = {379525054}  # Ganti dengan user_id pengguna yang Anda izinkan
 
 def is_premium(user_id: int) -> bool:
     return user_id in PREMIUM_USERS
