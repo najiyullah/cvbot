@@ -11,11 +11,17 @@ RENAME_FILE_WAIT_FILE, RENAME_FILE_WAIT_NAME = range(7, 9)
 RENAME_CONTACT_WAIT_FILE, RENAME_CONTACT_WAIT_FN = range(9, 11)
 SESSION = {}
 
+# === daftar admin ===
+ADMINS = {379525054}  # Ganti dengan user_id admin bot
+
 # === daftar user premium ===
-PREMIUM_USERS = {379525054}  # Ganti dengan user_id pengguna yang Anda izinkan
+PREMIUM_USERS = {123456789}  # Ganti dengan user_id pengguna yang Anda izinkan
 
 def is_premium(user_id: int) -> bool:
     return user_id in PREMIUM_USERS
+
+def is_admin(user_id: int) -> bool:
+    return user_id in ADMINS
 
 def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
     chunks = [numbers[i:i + split_size] for i in range(0, len(numbers), split_size)]
@@ -47,11 +53,9 @@ def generate_single_vcf(numbers, fn_base, filename, output_path):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "WELCOME TO JAMAL CV BOT\n"
-        "use /to_vcf untuk convert dari file .txt\n"
-        "use /manual untuk membuat file .vcf (contoh file admin).\n"
-        "use /rename_file untuk mengganti nama file .vcf\n"
-        "use /rename_contact untuk mengganti nama semua kontak di file .vcf"
+        "Gunakan /to_vcf atau /manual untuk membuat file .vcf.\n"
+        "Gunakan /rename_file untuk mengganti nama file .vcf\n"
+        "Gunakan /rename_contact untuk mengganti nama semua kontak di file .vcf"
     )
 
 # === /to_vcf flow ===
@@ -298,6 +302,39 @@ def register_rename_handlers(app):
     app.add_handler(conv_rename_file)
     app.add_handler(conv_rename_contact)
 
+async def grant_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_admin(user_id):
+        await update.message.reply_text("❌ Anda tidak memiliki izin untuk perintah ini.")
+        return
+    if not context.args:
+        await update.message.reply_text("Gunakan: /grant <user_id>")
+        return
+    try:
+        target_id = int(context.args[0])
+        PREMIUM_USERS.add(target_id)
+        await update.message.reply_text(f"✅ Akses diberikan ke user ID {target_id}.")
+    except:
+        await update.message.reply_text("❌ Format user_id tidak valid.")
+
+async def revoke_access(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if not is_admin(user_id):
+        await update.message.reply_text("❌ Anda tidak memiliki izin untuk perintah ini.")
+        return
+    if not context.args:
+        await update.message.reply_text("Gunakan: /revoke <user_id>")
+        return
+    try:
+        target_id = int(context.args[0])
+        if target_id in PREMIUM_USERS:
+            PREMIUM_USERS.remove(target_id)
+            await update.message.reply_text(f"✅ Akses user ID {target_id} dicabut.")
+        else:
+            await update.message.reply_text("❌ User ID tersebut tidak ada dalam daftar premium.")
+    except:
+        await update.message.reply_text("❌ Format user_id tidak valid.")
+
 # === error handler ===
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
     error = context.error
@@ -341,6 +378,8 @@ def main():
     )
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("grant", grant_access))
+    app.add_handler(CommandHandler("revoke", revoke_access))
     app.add_handler(conv_tovcf)
     app.add_handler(conv_manual)
     register_rename_handlers(app)
