@@ -27,15 +27,19 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         file_paths.append(path)
     return file_paths
 
+import vobject
+
 def generate_single_vcf(numbers, fn_base, filename, output_path):
-    with open(output_path, 'w', encoding='utf-8-sig') as f:  # ✅ gunakan utf-8-sig
+    with open(output_path, 'w', encoding='utf-8') as f:
         for i, number in enumerate(numbers, 1):
-            f.write("BEGIN:VCARD\r\n")
-            f.write("VERSION:3.0\r\n")
-            f.write(f"FN:{fn_base} {i}\r\n")
-            f.write(f"N:{fn_base} {i};;;\r\n")  # ✅ wajib untuk validitas
-            f.write(f"TEL:{number}\r\n")
-            f.write("END:VCARD\r\n\r\n")
+            v = vobject.vCard()
+            v.add('n').value = vobject.vcard.Name(family=fn_base, given=str(i))
+            v.add('fn').value = f"{fn_base} {i}"
+            tel = v.add('tel')
+            tel.type_param = 'CELL'
+            tel.value = number
+            f.write(v.serialize())
+            f.write('\n')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file vcf.")
