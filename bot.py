@@ -7,6 +7,7 @@ from telegram.ext import (
 )
 
 ASK_FILE, ASK_FN, ASK_FILENAME, ASK_SPLIT = range(4)
+MANUAL_NUMBERS, MANUAL_FN, MANUAL_FILENAME = range(4, 7)
 SESSION = {}
 
 def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
@@ -26,9 +27,19 @@ def split_and_generate_vcf(numbers, fn_base, file_base, split_size, temp_dir):
         file_paths.append(path)
     return file_paths
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Gunakan /to_vcf untuk mulai mengonversi .txt ke .vcf")
+def generate_single_vcf(numbers, fn_base, filename, output_path):
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for i, number in enumerate(numbers, 1):
+            f.write("BEGIN:VCARD\r\n")
+            f.write("VERSION:3.0\r\n")
+            f.write(f"FN:{fn_base} {i}\r\n")
+            f.write(f"TEL:{number}\r\n")
+            f.write("END:VCARD\r\n\r\n")
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Gunakan /to_vcf atau /manual untuk membuat file vcf.")
+
+# ======== /to_vcf ========
 async def to_vcf(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Silakan kirim file .txt yang berisi daftar nomor.")
     return ASK_FILE
@@ -84,16 +95,51 @@ async def receive_split(update: Update, context: ContextTypes.DEFAULT_TYPE):
     SESSION.pop(user_id, None)
     return ConversationHandler.END
 
+# ======== /manual ========
+async def manual(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Kirim daftar nomor (satu per baris).")
+    return MANUAL_NUMBERS
+
+async def manual_receive_numbers(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    numbers = [line.strip() for line in update.message.text.splitlines() if line.strip()]
+    if not numbers:
+        await update.message.reply_text("Daftar nomor tidak valid. Kirim ulang.")
+        return MANUAL_NUMBERS
+    SESSION[user_id] = {"manual_numbers": numbers}
+    await update.message.reply_text("Masukkan nama kontak (FN):")
+    return MANUAL_FN
+
+async def manual_receive_fn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    SESSION[user_id]["manual_fn"] = update.message.text.strip()
+    await update.message.reply_text("Masukkan nama file hasil (tanpa .vcf):")
+    return MANUAL_FILENAME
+
+async def manual_receive_filename(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    data = SESSION[user_id]
+    filename = update.message.text.strip()
+    temp_path = f"/tmp/{filename}.vcf"
+    generate_single_vcf(data["manual_numbers"], data["manual_fn"], filename, temp_path)
+    await update.message.reply_document(InputFile(temp_path, filename=f"{filename}.vcf"))
+    os.remove(temp_path)
+    SESSION.pop(user_id, None)
+    return ConversationHandler.END
+
+# ======== Cancel ========
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("❌ Proses dibatalkan.", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
+# ======== Main ========
 def main():
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
         raise Exception("Env var TELEGRAM_BOT_TOKEN tidak ditemukan!")
     app = ApplicationBuilder().token(TOKEN).build()
-    conv = ConversationHandler(
+
+    conv_tovcf = ConversationHandler(
         entry_points=[CommandHandler("to_vcf", to_vcf)],
         states={
             ASK_FILE: [MessageHandler(filters.Document.ALL, receive_file)],
@@ -103,8 +149,20 @@ def main():
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
+
+    conv_manual = ConversationHandler(
+        entry_points=[CommandHandler("manual", manual)],
+        states={
+            MANUAL_NUMBERS: [MessageHandler(filters.TEXT & ~filters.COMMAND, manual_receive_numbers)],
+            MANUAL_FN: [MessageHandler(filters.TEXT & ~filters.COMMAND, manual_receive_fn)],
+            MANUAL_FILENAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, manual_receive_filename)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(conv)
+    app.add_handler(conv_tovcf)
+    app.add_handler(conv_manual)
     print("Bot aktif...")
     app.run_polling()
 
