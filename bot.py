@@ -415,13 +415,7 @@ else:
 
 if not TOKEN:
     raise Exception(".env ditemukan, tapi tidak ada TELEGRAM_BOT_TOKEN di dalamnya!")
-
-# ===== SISA KODE BOT DISINI =====
-# Untuk keperluan demo, hanya kirim satu pesan saat start
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("✅ Bot aktif dan token berhasil dibaca!")
-
+    
 # === main ===
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
