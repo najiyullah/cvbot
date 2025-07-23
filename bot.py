@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import json
 from telegram import Update, InputFile, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -403,7 +406,10 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
 
 # === main ===
 def main():
-    TOKEN = "8105467712:AAFiQNTaSslOMDyCuINjMy9GnO14a4M_eAI"
+    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not TOKEN:
+        raise Exception("Env var TELEGRAM_BOT_TOKEN tidak ditemukan!")
+    app = ApplicationBuilder().token(TOKEN).build()
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_error_handler(handle_error)
 
