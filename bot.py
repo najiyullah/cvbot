@@ -300,15 +300,21 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_photo(
         photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
-        caption="""💳 Silakan scan QRIS di atas untuk pembayaran akses premium.
+        caption=caption,
+        parse_mode="HTML")
+        caption = """<b>💳 Pembayaran Akses Premium</b>
 
-        PRICELIST : 
-        1 BULAN 25K
-        2 BULAN 50K
-        5 BULAN 100K
-        
-        Setelah membayar, kirim bukti dan ID Telegram Anda ke Admin @jamalcok."""
-    )
+        Silakan scan QRIS di atas untuk melakukan pembayaran.
+
+        <b>💰 Pricelist:</b>
+        • 1 Bulan — Rp25.000
+        • 2 Bulan — Rp50.000
+        • 5 Bulan — Rp100.000
+        • Permanent — Rp300.000
+
+        📩 Setelah membayar, kirim bukti pembayaran & ID Telegram Anda ke admin:
+        👉 @jamalcok
+        """
 
 # === daftar handler tambahan ===
 def register_rename_handlers(app):
