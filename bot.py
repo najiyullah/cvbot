@@ -302,19 +302,19 @@ async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
         caption=caption,
         parse_mode="HTML")
-        caption = """<b>💳 Pembayaran Akses Premium</b>
+    caption = """<b>💳 Pembayaran Akses Premium</b>
 
-        Silakan scan QRIS di atas untuk melakukan pembayaran.
+Silakan scan QRIS di atas untuk melakukan pembayaran.
 
-        <b>💰 Pricelist:</b>
-        • 1 Bulan — Rp25.000
-        • 2 Bulan — Rp50.000
-        • 5 Bulan — Rp100.000
-        • Permanent — Rp300.000
+<b>💰 Pricelist:</b>
+• 1 Bulan — Rp25.000
+• 2 Bulan — Rp50.000
+• 5 Bulan — Rp100.000
+• Permanent — Rp300.000
 
-        📩 Setelah membayar, kirim bukti pembayaran & ID Telegram Anda ke admin:
-        👉 @jamalcok
-        """
+📩 Setelah membayar, kirim bukti pembayaran & ID Telegram Anda ke admin:
+👉 @jamalcok
+"""
 
 # === daftar handler tambahan ===
 def register_rename_handlers(app):
