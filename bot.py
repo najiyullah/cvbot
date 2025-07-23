@@ -409,9 +409,22 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
 
 # === main ===
 def main():
-    TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-    if not TOKEN:
-        raise Exception("Env var TELEGRAM_BOT_TOKEN tidak ditemukan!")
+from pathlib import Path
+
+# Baca .env secara manual
+env_path = Path(__file__).resolve().parent / ".env"
+if env_path.exists():
+    with open(env_path) as f:
+        for line in f:
+            if line.startswith("TELEGRAM_BOT_TOKEN="):
+                TOKEN = line.strip().split("=", 1)[1]
+                break
+else:
+    TOKEN = None
+
+if not TOKEN:
+    raise Exception(".env ditemukan, tapi tidak ada TELEGRAM_BOT_TOKEN di dalamnya!")
+
     app = ApplicationBuilder().token(TOKEN).build()
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_error_handler(handle_error)
