@@ -298,10 +298,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 async def qris(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_photo(
-        photo="https://imgur.com/GwckH7d",  # ganti dengan link Anda sendiri
-        caption=caption,
-        parse_mode="HTML")
     caption = """<b>💳 Pembayaran Akses Premium</b>
 
 Silakan scan QRIS di atas untuk melakukan pembayaran.
@@ -315,6 +311,11 @@ Silakan scan QRIS di atas untuk melakukan pembayaran.
 📩 Setelah membayar, kirim bukti pembayaran & ID Telegram Anda ke admin:
 👉 @jamalcok
 """
+    await update.message.reply_photo(
+        photo="https://i.imgur.com/GwckH7d.jpg",
+        caption=caption,
+        parse_mode="HTML"
+    )
 
 # === daftar handler tambahan ===
 def register_rename_handlers(app):
