@@ -404,8 +404,6 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE):
 # === main ===
 def main():
     TOKEN = "8105467712:AAFiQNTaSslOMDyCuINjMy9GnO14a4M_eAI"
-    if not TOKEN:
-        raise Exception("Env var TELEGRAM_BOT_TOKEN tidak ditemukan!")
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_error_handler(handle_error)
 
