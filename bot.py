@@ -1,7 +1,8 @@
 import os
 from dotenv import load_dotenv
-load_dotenv()
 
+load_dotenv()
+print("Token yang terbaca:", os.getenv("TELEGRAM_BOT_TOKEN"))
 import json
 from telegram import Update, InputFile, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
